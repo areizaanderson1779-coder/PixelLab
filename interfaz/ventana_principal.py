@@ -3,7 +3,7 @@
 from collections.abc import Callable, Iterable
 from pathlib import Path
 import tkinter as tk
-from tkinter import filedialog, messagebox, ttk
+from tkinter import filedialog, messagebox, simpledialog, ttk
 
 from PIL import Image, ImageTk
 
@@ -52,6 +52,7 @@ class VentanaPrincipal(tk.Tk):
         acciones = [
             ("Guardar", self._guardar),
             ("Rotar 90°", lambda: self._ejecutar(self.editor.rotar, "Imagen rotada 90°.")),
+            ("Redimensionar", self._redimensionar),
             ("Deshacer", lambda: self._ejecutar(self.editor.deshacer, "Cambio deshecho.")),
             ("Restaurar", lambda: self._ejecutar(self.editor.restaurar, "Original restaurado.")),
         ]
@@ -117,6 +118,23 @@ class VentanaPrincipal(tk.Tk):
         if ruta:
             self._ejecutar(lambda: self.editor.guardar(ruta),
                            f"Imagen guardada: {Path(ruta).name}")
+
+    def _redimensionar(self) -> None:
+        imagen = self.editor.imagen_actual
+        if imagen is None:
+            messagebox.showerror("PixelLab", "Primero debes cargar una imagen.", parent=self)
+            return
+        ancho = simpledialog.askinteger(
+            "Redimensionar", "Nuevo ancho en píxeles (1–10000):",
+            initialvalue=imagen.width, parent=self, minvalue=1, maxvalue=10000)
+        if ancho is None:
+            return
+        alto = simpledialog.askinteger(
+            "Redimensionar", "Nuevo alto en píxeles (1–10000):",
+            initialvalue=imagen.height, parent=self, minvalue=1, maxvalue=10000)
+        if alto is not None:
+            self._ejecutar(lambda: self.editor.redimensionar(ancho, alto),
+                           f"Imagen redimensionada: {ancho} × {alto} píxeles.")
 
     def _al_redimensionar(self, evento: tk.Event) -> None:
         if self._redibujado is not None:

@@ -9,7 +9,9 @@ class Filtro(ABC):
     """Contrato común para cualquier transformación de imagen."""
 
     def __init__(self, nombre: str) -> None:
-        self._nombre = nombre
+        if not isinstance(nombre, str) or not nombre.strip():
+            raise ValueError("El nombre del filtro debe ser un texto no vacío.")
+        self._nombre = nombre.strip()
 
     @property
     def nombre(self) -> str:

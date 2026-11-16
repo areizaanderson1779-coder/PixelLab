@@ -14,6 +14,27 @@ from modelos.filtros import (
 
 
 class PruebasEditor(unittest.TestCase):
+    def test_redimensionar_y_deshacer(self):
+        self.editor.cargar(self.ruta)
+        self.editor.redimensionar(12, 8)
+        self.assertEqual(self.editor.imagen_actual.size, (12, 8))
+        self.editor.deshacer()
+        self.assertEqual(self.editor.imagen_actual.size, (3, 2))
+
+    def test_redimensionar_invalido_conserva_estado(self):
+        self.editor.cargar(self.ruta)
+        for ancho, alto in [(0, 4), (-1, 4), (2.5, 4), (True, 4), (4, '2'), (10001, 1)]:
+            with self.subTest(ancho=ancho, alto=alto):
+                with self.assertRaises(ValueError):
+                    self.editor.redimensionar(ancho, alto)
+                self.assertEqual(self.editor.imagen_actual.size, (3, 2))
+        with self.assertRaises(ValueError):
+            self.editor.deshacer()
+
+    def test_redimensionar_sin_imagen(self):
+        with self.assertRaisesRegex(ValueError, 'imagen'):
+            self.editor.redimensionar(10, 10)
+
     def setUp(self):
         self.temporal = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporal.cleanup)
@@ -123,6 +144,16 @@ class PruebasEditor(unittest.TestCase):
 
 
 class PruebasFiltros(unittest.TestCase):
+    def test_nombre_filtro_validado(self):
+        class Personalizado(Filtro):
+            def aplicar(self, imagen):
+                return imagen.copy()
+        for nombre in ('', '   ', None, 123):
+            with self.subTest(nombre=nombre):
+                with self.assertRaises(ValueError):
+                    Personalizado(nombre)
+        self.assertEqual(Personalizado('  Mi filtro  ').nombre, 'Mi filtro')
+
     def test_filtro_es_abstracto(self):
         with self.assertRaises(TypeError):
             Filtro('Base')

@@ -77,6 +77,16 @@ class EditorImagen:
         self._exigir_imagen()
         self._registrar_cambio(self._imagen_original)
 
+    def redimensionar(self, ancho: int, alto: int) -> None:
+        """Cambia las dimensiones reales y permite deshacer la operación."""
+        imagen = self._exigir_imagen()
+        if (type(ancho) is not int or type(alto) is not int
+                or not 1 <= ancho <= 10000 or not 1 <= alto <= 10000):
+            raise ValueError("Ancho y alto deben ser enteros entre 1 y 10000 píxeles.")
+        if ancho * alto > 25000000:
+            raise ValueError("El resultado no debe superar 25 millones de píxeles.")
+        self._registrar_cambio(imagen.resize((ancho, alto), Image.Resampling.LANCZOS))
+
     def deshacer(self) -> None:
         self._exigir_imagen()
         if not self._historial:
